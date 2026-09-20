@@ -14,6 +14,12 @@ const NEW_TAB_FILE = 'new-tab.html';
 const tabsContainer = document.getElementById('tabs-container');
 const newTabBtn = document.getElementById('new-tab-btn');
 const urlInput = document.getElementById('url-input');
+const urlDisplay = document.getElementById('url-display');
+const urlDomain = document.getElementById('url-domain');
+const urlRest = document.getElementById('url-rest');
+const lockIcon = document.getElementById('lock-icon');
+const bookmarkStar = document.getElementById('bookmark-star');
+const urlBarContainer = document.getElementById('url-bar-container');
 const backBtn = document.getElementById('back-btn');
 const forwardBtn = document.getElementById('forward-btn');
 const reloadBtn = document.getElementById('reload-btn');
@@ -29,6 +35,45 @@ const bookmarksPanel = document.getElementById('bookmarks-panel');
 const historyPanel = document.getElementById('history-panel');
 const bookmarksList = document.getElementById('bookmarks-list');
 const historyList = document.getElementById('history-list');
+
+// === URL Display ===
+function updateUrlDisplay(url) {
+    if (!url || url === 'newtab' || url.startsWith('file://') && url.includes('new-tab.html')) {
+        urlDomain.textContent = '';
+        urlRest.textContent = '';
+        urlInput.value = '';
+        urlInput.placeholder = 'Web adresi veya arama...';
+        lockIcon.style.display = 'none';
+        return;
+    }
+
+    lockIcon.style.display = 'flex';
+    urlInput.value = url;
+    urlInput.placeholder = '';
+
+    try {
+        const parsed = new URL(url);
+        const domain = parsed.hostname;
+        const protocol = parsed.protocol;
+        const isSecure = protocol === 'https:';
+
+        lockIcon.classList.toggle('insecure', !isSecure);
+
+        const rest = parsed.pathname + parsed.search + parsed.hash;
+        urlDomain.textContent = domain;
+        urlRest.textContent = rest === '/' ? '' : rest;
+    } catch {
+        urlDomain.textContent = url;
+        urlRest.textContent = '';
+    }
+
+    updateBookmarkStar(url);
+}
+
+async function updateBookmarkStar(url) {
+    const isBookmarked = bookmarks.some(b => b.url === url);
+    bookmarkStar.classList.toggle('active', isBookmarked);
+}
 
 // === Tab Management ===
 function createTab(url) {
@@ -92,11 +137,9 @@ function switchTab(tabId) {
     }
 
     if (tab.isNewTab) {
-        urlInput.value = '';
-        urlInput.placeholder = 'Web adresi veya arama...';
+        updateUrlDisplay('newtab');
     } else {
-        urlInput.value = tab.url;
-        urlInput.placeholder = tab.url;
+        updateUrlDisplay(tab.url);
     }
     document.title = tab.title === 'Yeni Sekme' ? 'AKAS Browser' : `${tab.title} — AKAS Browser`;
     updateNavButtons();
@@ -194,7 +237,7 @@ function setupWebviewEvents(webview, tabId) {
     webview.addEventListener('did-navigate', (e) => {
         updateTabUrl(tabId, e.url);
         if (activeTabId === tabId) {
-            urlInput.value = e.url;
+            updateUrlDisplay(e.url);
             updateNavButtons();
         }
         window.akasAPI.addHistory({ url: e.url, title: webview.getTitle() || e.url });
@@ -202,7 +245,7 @@ function setupWebviewEvents(webview, tabId) {
 
     webview.addEventListener('did-navigate-in-page', (e) => {
         updateTabUrl(tabId, e.url);
-        if (activeTabId === tabId) urlInput.value = e.url;
+        if (activeTabId === tabId) updateUrlDisplay(e.url);
     });
 
     webview.addEventListener('page-title-updated', (e) => {
@@ -250,6 +293,10 @@ function setZoom(level) {
 async function loadBookmarks() {
     bookmarks = await window.akasAPI.getBookmarks();
     renderBookmarks();
+    const tab = tabs.find(t => t.id === activeTabId);
+    if (tab && tab.url !== 'newtab') {
+        updateBookmarkStar(tab.url);
+    }
 }
 
 function renderBookmarks() {
@@ -413,6 +460,27 @@ urlInput.addEventListener('keydown', (e) => {
 
 urlInput.addEventListener('focus', () => urlInput.select());
 
+urlDisplay.addEventListener('click', () => {
+    urlInput.focus();
+    urlInput.select();
+});
+
+bookmarkStar.addEventListener('click', async () => {
+    const wv = document.getElementById(`web-view-${activeTabId}`);
+    if (!wv) return;
+    const url = wv.getURL();
+    const title = wv.getTitle() || url;
+
+    const existing = bookmarks.find(b => b.url === url);
+    if (existing) {
+        bookmarks = await window.akasAPI.removeBookmark(existing.id);
+    } else {
+        bookmarks = await window.akasAPI.addBookmark({ url, title });
+    }
+    updateBookmarkStar(url);
+    renderBookmarks();
+});
+
 backBtn.addEventListener('click', () => {
     const wv = document.getElementById(`web-view-${activeTabId}`);
     if (wv && wv.canGoBack()) wv.goBack();
@@ -443,7 +511,7 @@ homeBtn.addEventListener('click', () => {
         if (wv) {
             wv.loadURL(window.akasAPI.getNewTabUrl());
         }
-        urlInput.value = '';
+        updateUrlDisplay('newtab');
         const tabEl = document.querySelector(`.tab[data-tab-id="${activeTabId}"] .tab-title`);
         if (tabEl) tabEl.textContent = 'Yeni Sekme';
     }
