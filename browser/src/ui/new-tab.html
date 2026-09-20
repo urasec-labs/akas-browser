@@ -18,20 +18,33 @@
             overflow: hidden;
             -webkit-font-smoothing: antialiased;
         }
+        body.light-theme {
+            background: #f8f9fa;
+            color: #1a1a2e;
+        }
+        .clock {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            font-family: 'SF Mono', 'Cascadia Code', monospace;
+            font-size: 0.85rem;
+            color: #475569;
+        }
+        .light-theme .clock { color: #64748b; }
         .logo-container {
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
             animation: fadeIn 0.5s ease;
         }
         .logo-container img {
-            width: 140px;
-            height: 140px;
+            width: 100px;
+            height: 100px;
             object-fit: contain;
             filter: drop-shadow(0 0 30px rgba(56, 189, 248, 0.15));
         }
         .subtitle {
             color: #64748b;
-            margin-bottom: 2.5rem;
-            font-size: 0.95rem;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
             letter-spacing: 0.02em;
             animation: fadeIn 0.5s ease 0.1s both;
         }
@@ -39,7 +52,7 @@
             width: 520px;
             max-width: 90vw;
             position: relative;
-            margin-bottom: 2.5rem;
+            margin-bottom: 2rem;
             animation: fadeIn 0.5s ease 0.2s both;
         }
         .search-box input {
@@ -53,13 +66,25 @@
             outline: none;
             transition: all 0.2s ease;
         }
+        .light-theme .search-box input {
+            border-color: #e2e8f0;
+            background: #ffffff;
+            color: #1a1a2e;
+        }
         .search-box input:focus {
             border-color: #38bdf8;
             box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1);
         }
-        .search-box input::placeholder {
+        .search-box input::placeholder { color: #475569; }
+        .section-title {
+            font-size: 0.8rem;
             color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 12px;
+            font-weight: 600;
         }
+        .light-theme .section-title { color: #94a3b8; }
         .quick-links {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -82,10 +107,19 @@
             text-decoration: none;
             color: #f1f5f9;
         }
+        .light-theme .quick-link {
+            background: #ffffff;
+            border-color: #e2e8f0;
+            color: #1a1a2e;
+        }
         .quick-link:hover {
             background: #1e293b;
             border-color: #334155;
             transform: translateY(-2px);
+        }
+        .light-theme .quick-link:hover {
+            background: #e2e8f0;
+            border-color: #cbd5e1;
         }
         .ql-icon {
             width: 42px;
@@ -94,22 +128,94 @@
             background: #1e293b;
             display: grid;
             place-items: center;
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 700;
             color: #38bdf8;
         }
+        .light-theme .ql-icon { background: #e2e8f0; }
         .ql-label {
             font-size: 0.75rem;
             color: #94a3b8;
             text-align: center;
+            max-width: 80px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
-        .clock {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            font-family: 'SF Mono', 'Cascadia Code', monospace;
-            font-size: 0.85rem;
+        .light-theme .ql-label { color: #64748b; }
+        .recent-section {
+            margin-top: 2rem;
+            max-width: 520px;
+            width: 90vw;
+            animation: fadeIn 0.5s ease 0.4s both;
+        }
+        .recent-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+        .recent-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: #111827;
+            border: 1px solid #1e293b;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            color: #f1f5f9;
+            overflow: hidden;
+        }
+        .light-theme .recent-item {
+            background: #ffffff;
+            border-color: #e2e8f0;
+            color: #1a1a2e;
+        }
+        .recent-item:hover {
+            background: #1e293b;
+            border-color: #334155;
+        }
+        .light-theme .recent-item:hover {
+            background: #e2e8f0;
+        }
+        .recent-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            background: #1e293b;
+            display: grid;
+            place-items: center;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #38bdf8;
+            flex-shrink: 0;
+        }
+        .light-theme .recent-icon { background: #e2e8f0; }
+        .recent-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .recent-title {
+            font-size: 0.78rem;
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .recent-url {
+            font-size: 0.65rem;
+            color: #64748b;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .empty-state {
+            text-align: center;
             color: #475569;
+            font-size: 0.8rem;
+            padding: 20px;
         }
         .footer-text {
             position: fixed;
@@ -125,56 +231,44 @@
 </head>
 <body>
     <div class="clock" id="ntp-clock"></div>
-    
+
     <div class="logo-container">
         <img src="../../assets/akas-logo.png" alt="AKAS Browser" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
-        <div style="display:none;font-size:3rem;font-weight:800;background:linear-gradient(135deg,#fff,#38bdf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent">AKAS</div>
+        <div style="display:none;font-size:2.5rem;font-weight:800;background:linear-gradient(135deg,#fff,#38bdf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent">AKAS</div>
     </div>
-    
+
     <div class="subtitle">Saf, hızlı ve bağımsız web</div>
-    
+
     <div class="search-box">
         <input type="text" id="ntp-search" placeholder="AKAS Browser'da arama yapın..." autofocus>
     </div>
-    
-    <div class="quick-links">
-        <a class="quick-link" href="https://google.com">
-            <div class="ql-icon">G</div>
-            <span class="ql-label">Google</span>
-        </a>
-        <a class="quick-link" href="https://youtube.com">
-            <div class="ql-icon">Y</div>
-            <span class="ql-label">YouTube</span>
-        </a>
-        <a class="quick-link" href="https://github.com">
-            <div class="ql-icon">GH</div>
-            <span class="ql-label">GitHub</span>
-        </a>
-        <a class="quick-link" href="https://twitter.com">
-            <div class="ql-icon">X</div>
-            <span class="ql-label">X / Twitter</span>
-        </a>
-        <a class="quick-link" href="https://reddit.com">
-            <div class="ql-icon">R</div>
-            <span class="ql-label">Reddit</span>
-        </a>
-        <a class="quick-link" href="https://wikipedia.org">
-            <div class="ql-icon">W</div>
-            <span class="ql-label">Wikipedia</span>
-        </a>
-        <a class="quick-link" href="https://discord.com">
-            <div class="ql-icon">D</div>
-            <span class="ql-label">Discord</span>
-        </a>
-        <a class="quick-link" href="https://urasakas.com.tr">
-            <div class="ql-icon">UA</div>
-            <span class="ql-label">Uras Akas</span>
-        </a>
+
+    <div id="bookmarks-section" class="recent-section" style="display:none">
+        <div class="section-title">Yer İmleri</div>
+        <div class="quick-links" id="ntp-bookmarks"></div>
     </div>
-    
-    <div class="footer-text">AKAS Browser v1.2.0</div>
+
+    <div id="history-section" class="recent-section" style="display:none">
+        <div class="section-title">Son Ziyaret Edilenler</div>
+        <div class="recent-grid" id="ntp-history"></div>
+    </div>
+
+    <div class="footer-text">AKAS Browser v1.3.0</div>
 
     <script>
+        const isLight = document.referrer.includes('light-theme') || false;
+
+        function applyTheme() {
+            try {
+                const data = localStorage.getItem('akas-settings');
+                if (data) {
+                    const s = JSON.parse(data);
+                    if (s.theme === 'light') document.body.classList.add('light-theme');
+                }
+            } catch {}
+        }
+        applyTheme();
+
         function updateClock() {
             const now = new Date();
             document.getElementById('ntp-clock').textContent = now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
@@ -186,20 +280,78 @@
             if (e.key === 'Enter') {
                 const val = this.value.trim();
                 if (val) {
-                    let url = val.includes('.') && !val.includes(' ') 
-                        ? (val.startsWith('http') ? val : 'https://' + val) 
+                    let url = val.includes('.') && !val.includes(' ')
+                        ? (val.startsWith('http') ? val : 'https://' + val)
                         : 'https://www.google.com/search?q=' + encodeURIComponent(val);
                     window.location.href = url;
                 }
             }
         });
 
-        document.querySelectorAll('.quick-link').forEach(link => {
-            link.addEventListener('click', function(e) {
-                e.preventDefault();
-                window.location.href = this.href;
-            });
-        });
+        async function loadNtpData() {
+            try {
+                if (!window.akasAPI) return;
+
+                const bookmarks = await window.akasAPI.getBookmarks();
+                const historyData = await window.akasAPI.getHistory();
+                const settings = await window.akasAPI.getSettings();
+
+                if (settings && settings.theme === 'light') {
+                    document.body.classList.add('light-theme');
+                }
+
+                if (bookmarks && bookmarks.length > 0) {
+                    const section = document.getElementById('bookmarks-section');
+                    const container = document.getElementById('ntp-bookmarks');
+                    section.style.display = 'block';
+                    container.innerHTML = bookmarks.slice(0, 8).map(bm => {
+                        const letter = (bm.title || bm.url || '?')[0].toUpperCase();
+                        let hostname = '';
+                        try { hostname = new URL(bm.url).hostname; } catch { hostname = bm.url; }
+                        return '<a class="quick-link" href="' + bm.url + '">' +
+                            '<div class="ql-icon">' + letter + '</div>' +
+                            '<span class="ql-label">' + (bm.title || hostname) + '</span>' +
+                        '</a>';
+                    }).join('');
+
+                    container.querySelectorAll('.quick-link').forEach(link => {
+                        link.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            window.location.href = this.href;
+                        });
+                    });
+                }
+
+                if (historyData && historyData.length > 0) {
+                    const section = document.getElementById('history-section');
+                    const container = document.getElementById('ntp-history');
+                    const recent = historyData.slice(0, 6);
+                    section.style.display = 'block';
+                    container.innerHTML = recent.map(h => {
+                        const letter = (h.title || h.url || '?')[0].toUpperCase();
+                        let hostname = '';
+                        try { hostname = new URL(h.url).hostname; } catch { hostname = h.url; }
+                        return '<a class="recent-item" href="' + h.url + '">' +
+                            '<div class="recent-icon">' + letter + '</div>' +
+                            '<div class="recent-info">' +
+                                '<div class="recent-title">' + (h.title || hostname) + '</div>' +
+                                '<div class="recent-url">' + hostname + '</div>' +
+                            '</div>' +
+                        '</a>';
+                    }).join('');
+
+                    container.querySelectorAll('.recent-item').forEach(item => {
+                        item.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            window.location.href = this.href;
+                        });
+                    });
+                }
+            } catch (err) {}
+        }
+
+        document.addEventListener('DOMContentLoaded', loadNtpData);
+        loadNtpData();
     </script>
 </body>
 </html>

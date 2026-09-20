@@ -2,6 +2,7 @@ const { app, BrowserWindow, session, ipcMain, shell, dialog, Menu, clipboard, na
 const path = require('path');
 const net = require('net');
 const fs = require('fs');
+const { autoUpdater } = require('electron-updater');
 
 let mainWindow;
 let isTorActive = false;
@@ -12,6 +13,7 @@ const blockedDomains = [...blocklists.trackers, ...blocklists.ads];
 const userDataPath = app.getPath('userData');
 const bookmarksPath = path.join(userDataPath, 'bookmarks.json');
 const historyPath = path.join(userDataPath, 'history.json');
+const settingsPath = path.join(userDataPath, 'settings.json');
 
 function loadJSON(filePath, fallback) {
     try {
@@ -30,6 +32,14 @@ function saveJSON(filePath, data) {
 
 let bookmarks = loadJSON(bookmarksPath, []);
 let history = loadJSON(historyPath, []);
+let settings = loadJSON(settingsPath, {
+    theme: 'dark',
+    fingerprintProtection: true,
+    autoUpdate: true,
+    blockTrackers: true,
+    blockAds: true,
+    safeBrowsing: true
+});
 
 function checkTorConnection() {
     return new Promise((resolve) => {
@@ -77,10 +87,12 @@ function isDomainBlocked(url) {
 async function createWindow() {
     await checkTorConnection();
 
+    const isDark = settings.theme !== 'light';
+
     mainWindow = new BrowserWindow({
         width: 1280,
         height: 800,
-        backgroundColor: '#0a0e1a',
+        backgroundColor: isDark ? '#0a0e1a' : '#f8f9fa',
         title: 'AKAS Browser',
         webPreferences: {
             preload: path.join(__dirname, 'ui/preload.js'),
@@ -106,11 +118,13 @@ async function createWindow() {
     });
 
     akasSession.webRequest.onBeforeRequest((details, callback) => {
-        if (isDomainBlocked(details.url)) {
-            callback({ cancel: true });
-        } else {
-            callback({ cancel: false });
+        if (settings.blockTrackers || settings.blockAds) {
+            if (isDomainBlocked(details.url)) {
+                callback({ cancel: true });
+                return;
+            }
         }
+        callback({ cancel: false });
     });
 
     akasSession.webRequest.onBeforeSendHeaders((details, callback) => {
@@ -119,14 +133,57 @@ async function createWindow() {
         callback({ cancel: false, requestHeaders: details.requestHeaders });
     });
 
+    akasSession.setPermissionRequestHandler((webContents, permission, callback) => {
+        callback(true);
+    });
+
     mainWindow.loadFile(path.join(__dirname, 'ui/index.html'));
 
     mainWindow.webContents.on('did-finish-load', () => {
         mainWindow.webContents.send('tor-status', { active: isTorActive });
+        mainWindow.webContents.send('theme-changed', settings.theme);
     });
 
     mainWindow.on('closed', () => { mainWindow = null; });
+
+    if (settings.autoUpdate) {
+        try {
+            autoUpdater.autoDownload = false;
+            autoUpdater.autoInstallOnAppQuit = true;
+            autoUpdater.checkForUpdates().catch(() => {});
+        } catch (e) {}
+    }
 }
+
+autoUpdater.on('update-available', (info) => {
+    if (mainWindow) {
+        mainWindow.webContents.send('update-status', {
+            type: 'available',
+            version: info.version,
+            releaseNotes: info.releaseNotes
+        });
+    }
+});
+
+autoUpdater.on('download-progress', (progress) => {
+    if (mainWindow) {
+        mainWindow.webContents.send('update-status', {
+            type: 'downloading',
+            percent: Math.round(progress.percent)
+        });
+    }
+});
+
+autoUpdater.on('update-downloaded', (info) => {
+    if (mainWindow) {
+        mainWindow.webContents.send('update-status', {
+            type: 'downloaded',
+            version: info.version
+        });
+    }
+});
+
+autoUpdater.on('error', () => {});
 
 app.whenReady().then(() => createWindow());
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
@@ -138,6 +195,48 @@ ipcMain.handle('new-tor-identity', async () => {
     const result = await requestNewTorIdentity();
     await checkTorConnection();
     return { success: isTorActive, ...result };
+});
+
+// === Settings ===
+ipcMain.handle('get-settings', () => settings);
+ipcMain.handle('set-settings', (e, newSettings) => {
+    settings = { ...settings, ...newSettings };
+    saveJSON(settingsPath, settings);
+    return settings;
+});
+
+// === Theme ===
+ipcMain.handle('get-theme', () => settings.theme || 'dark');
+ipcMain.handle('set-theme', (e, theme) => {
+    settings.theme = theme;
+    saveJSON(settingsPath, settings);
+    if (mainWindow) {
+        mainWindow.webContents.send('theme-changed', theme);
+    }
+    return theme;
+});
+
+// === Auto Update ===
+ipcMain.handle('check-for-updates', async () => {
+    try {
+        const result = await autoUpdater.checkForUpdates();
+        return { success: true, updateInfo: result ? result.updateInfo : null };
+    } catch (e) {
+        return { success: false, message: e.message };
+    }
+});
+
+ipcMain.handle('download-update', async () => {
+    try {
+        await autoUpdater.downloadUpdate();
+        return { success: true };
+    } catch (e) {
+        return { success: false, message: e.message };
+    }
+});
+
+ipcMain.handle('install-update', () => {
+    autoUpdater.quitAndInstall(false, true);
 });
 
 // === Data ===

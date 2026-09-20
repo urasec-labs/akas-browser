@@ -1,6 +1,6 @@
 {
   "name": "akas-browser-pro",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "AKAS Browser - Advanced Secure Chromium-based Browser with Tor Proxy, Fingerprint Protection & AKAS Shield",
   "main": "src/main.js",
   "scripts": {
@@ -10,6 +10,9 @@
   "keywords": ["browser", "electron", "chromium", "tor", "privacy", "akas"],
   "author": "AKAS",
   "license": "MIT",
+  "dependencies": {
+    "electron-updater": "^6.1.7"
+  },
   "devDependencies": {
     "electron": "^28.2.0",
     "electron-builder": "^24.9.0"
@@ -19,6 +22,11 @@
     "productName": "AKAS Browser",
     "directories": { "output": "release" },
     "win": { "target": ["nsis", "zip"], "icon": "assets/icon.ico" },
-    "files": ["src/**/*", "assets/**/*", "package.json"]
+    "files": ["src/**/*", "assets/**/*", "package.json"],
+    "publish": {
+      "provider": "github",
+      "owner": "UrasAkas",
+      "repo": "AKAS-Browser-Complete-Ecosystem"
+    }
   }
 }
