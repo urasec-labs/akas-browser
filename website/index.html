@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AKAS Browser — Saf, Hızlı ve Bağımsız Web</title>
+    <link rel="icon" type="image/png" href="./assets/akas-logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg: #050507;
+            --surface-low: #0c0c10;
+            --surface-mid: #14141c;
+            --surface-high: #1e1e28;
+            --border: rgba(255, 255, 255, 0.08);
+            --border-hover: rgba(255, 255, 255, 0.2);
+            --text-primary: #f4f4f7;
+            --text-secondary: #8d8d9d;
+            --accent: #ffffff;
+            --accent-dim: #a1a1b3;
+            --font-main: 'Plus Jakarta Sans', -apple-system, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font-main); -webkit-font-smoothing: antialiased; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* === Background Effects === */
+        .bg-grid {
+            position: fixed; inset: 0;
+            background-image: linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 40px 40px;
+            mask-image: radial-gradient(circle at 50% 30%, black 20%, transparent 80%);
+            z-index: 0; pointer-events: none;
+        }
+
+        .glow-top {
+            position: absolute; top: -150px; left: 50%; transform: translateX(-50%);
+            width: 700px; height: 400px;
+            background: radial-gradient(circle, rgba(255,255,255,0.07) 0%, transparent 70%);
+            filter: blur(60px); z-index: 0; pointer-events: none;
+        }
+
+        .glow-secondary {
+            position: absolute; top: 600px; right: -200px;
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, rgba(56,189,248,0.04) 0%, transparent 70%);
+            filter: blur(80px); z-index: 0; pointer-events: none;
+        }
+
+        /* === Animations === */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .animate-on-scroll.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* === Navbar === */
+        header {
+            width: 100%; max-width: 1200px; margin: 0 auto;
+            padding: 2rem; display: flex; justify-content: space-between; align-items: center;
+            position: relative; z-index: 10;
+            animation: fadeIn 0.8s ease;
+        }
+
+        .brand-logo {
+            display: flex; align-items: center; gap: 0.75rem;
+            text-decoration: none; color: var(--text-primary);
+        }
+
+        .logo-icon {
+            width: 42px; height: 42px;
+            border-radius: 10px; overflow: hidden;
+            background: linear-gradient(135deg, #fff 0%, #333340 100%);
+            display: grid; place-items: center;
+            position: relative;
+        }
+
+        .logo-icon img {
+            width: 100%; height: 100%; object-fit: cover;
+        }
+
+        .logo-icon .fallback {
+            position: absolute;
+            font-weight: 800; color: #000; font-size: 0.9rem;
+            display: none;
+        }
+
+        .logo-icon img:not([src]),
+        .logo-icon img[src=""] {
+            display: none;
+        }
+
+        .logo-icon img:not([src]) ~ .fallback,
+        .logo-icon img[src=""] ~ .fallback {
+            display: block;
+        }
+
+        .brand-name { font-weight: 700; font-size: 1.1rem; letter-spacing: -0.02em; }
+
+        .version-badge {
+            font-family: var(--font-mono); font-size: 0.7rem;
+            padding: 0.2rem 0.5rem; background: var(--surface-mid);
+            border: 1px solid var(--border); border-radius: 20px;
+            color: var(--text-secondary);
+        }
+
+        .domain-link {
+            color: var(--text-secondary); text-decoration: none;
+            font-size: 0.9rem; font-weight: 500; transition: color 0.2s;
+        }
+
+        .domain-link:hover { color: var(--text-primary); }
+
+        /* === Hero === */
+        main { width: 100%; max-width: 1000px; margin: 0 auto; padding: 3rem 1.5rem 5rem; text-align: center; position: relative; z-index: 10; }
+
+        .pill-badge {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            padding: 0.4rem 1rem; background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border); border-radius: 100px;
+            font-size: 0.8rem; font-weight: 500; color: var(--text-secondary);
+            margin-bottom: 2rem; backdrop-filter: blur(10px);
+            animation: fadeInUp 0.6s ease 0.2s both;
+        }
+
+        .pill-dot { width: 6px; height: 6px; background: #fff; border-radius: 50%; box-shadow: 0 0 8px #fff; animation: pulse 2s infinite; }
+
+        h1 {
+            font-size: clamp(2.5rem, 6vw, 4.2rem); font-weight: 800;
+            line-height: 1.08; letter-spacing: -0.04em; margin-bottom: 1.5rem;
+            background: linear-gradient(180deg, #fff 30%, #7d7d91 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            animation: fadeInUp 0.6s ease 0.4s both;
+        }
+
+        p.hero-desc {
+            font-size: clamp(1rem, 2vw, 1.15rem); color: var(--text-secondary);
+            line-height: 1.6; max-width: 600px; margin: 0 auto 3rem;
+            animation: fadeInUp 0.6s ease 0.6s both;
+        }
+
+        /* === CTA === */
+        .cta-wrapper {
+            display: flex; flex-direction: column; align-items: center; gap: 1.2rem;
+            animation: fadeInUp 0.6s ease 0.8s both;
+        }
+
+        .btn-download {
+            position: relative; display: inline-flex; align-items: center;
+            gap: 0.8rem; background: #fff; color: #050507;
+            padding: 1.2rem 3rem; border-radius: 14px;
+            font-weight: 700; font-size: 1.1rem; text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 0 0 1px rgba(255,255,255,0.1), 0 10px 30px -10px rgba(255,255,255,0.3);
+        }
+
+        .btn-download:hover {
+            transform: translateY(-4px) scale(1.02); background: #f0f0f5;
+            box-shadow: 0 0 0 1px rgba(255,255,255,0.2), 0 20px 50px -10px rgba(255,255,255,0.4);
+        }
+
+        .btn-download:active {
+            transform: translateY(-1px) scale(1.01);
+        }
+
+        .btn-download svg { width: 20px; height: 20px; fill: currentColor; }
+
+        .system-meta {
+            font-family: var(--font-mono); font-size: 0.78rem;
+            color: var(--text-secondary); display: flex; align-items: center; gap: 0.8rem;
+        }
+
+        .system-meta span { width: 3px; height: 3px; background: var(--text-secondary); border-radius: 50%; }
+
+        .download-alt {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+        }
+
+        .download-alt a {
+            color: var(--text-primary);
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+
+        .download-alt a:hover {
+            color: #fff;
+        }
+
+        /* === Browser Mockup === */
+        .browser-mockup {
+            margin-top: 4rem;
+            background: var(--surface-low);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05);
+            animation: scaleIn 0.8s ease 1s both;
+        }
+
+        .mockup-toolbar {
+            display: flex; align-items: center; gap: 8px;
+            padding: 10px 14px; background: var(--surface-mid);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .mockup-dots { display: flex; gap: 6px; }
+        .mockup-dot { width: 10px; height: 10px; border-radius: 50%; }
+        .mockup-dot:nth-child(1) { background: #ef4444; }
+        .mockup-dot:nth-child(2) { background: #f59e0b; }
+        .mockup-dot:nth-child(3) { background: #22c55e; }
+
+        .mockup-url {
+            flex: 1; display: flex; align-items: center; gap: 8px;
+            padding: 6px 12px; background: var(--bg);
+            border: 1px solid var(--border); border-radius: 8px;
+            font-size: 12px; color: var(--text-secondary);
+            font-family: var(--font-mono);
+        }
+
+        .mockup-tabs { display: flex; gap: 4px; margin-left: auto; }
+        .mockup-tab {
+            padding: 4px 12px; border-radius: 6px;
+            font-size: 11px; color: var(--text-secondary);
+            background: var(--surface-high);
+        }
+
+        .mockup-content {
+            height: 300px; background: linear-gradient(135deg, #0d1117, #161b22);
+            display: flex; align-items: center; justify-content: center;
+            position: relative; overflow: hidden;
+        }
+
+        .mockup-content::before {
+            content: ''; position: absolute; inset: 0;
+            background: radial-gradient(circle at 50% 50%, rgba(56,189,248,0.05) 0%, transparent 60%);
+        }
+
+        .mockup-search {
+            text-align: center; position: relative; z-index: 1;
+        }
+
+        .mockup-logo {
+            width: 120px; height: 120px; margin: 0 auto 1rem;
+            border-radius: 16px; overflow: hidden;
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            display: grid; place-items: center;
+            border: 1px solid var(--border);
+        }
+
+        .mockup-logo img {
+            width: 100%; height: 100%; object-fit: cover;
+        }
+
+        .mockup-logo .fallback {
+            font-size: 2.5rem; font-weight: 800;
+            background: linear-gradient(135deg, #fff, #38bdf8);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            display: none;
+        }
+
+        .mockup-search-bar {
+            width: 350px; max-width: 80vw; padding: 10px 16px;
+            border-radius: 10px; border: 1px solid var(--border);
+            background: var(--surface-low); color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        /* === Features Section === */
+        .section-header {
+            margin-top: 6rem; margin-bottom: 2rem; text-align: center;
+        }
+
+        .section-header h2 {
+            font-size: 1.8rem; font-weight: 700; letter-spacing: -0.03em;
+            background: linear-gradient(180deg, #fff 30%, #7d7d91 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        .section-header p { color: var(--text-secondary); margin-top: 0.5rem; font-size: 0.95rem; }
+
+        .grid-features {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.25rem; margin-top: 3rem; text-align: left;
+        }
+
+        .card {
+            background: var(--surface-low); border: 1px solid var(--border);
+            padding: 1.8rem; border-radius: 16px; position: relative;
+            overflow: hidden; transition: all 0.3s ease;
+        }
+
+        .card:hover { border-color: var(--border-hover); background: var(--surface-mid); transform: translateY(-2px); }
+
+        .card-icon {
+            width: 40px; height: 40px; background: var(--surface-high);
+            border: 1px solid var(--border); border-radius: 10px;
+            display: grid; place-items: center; margin-bottom: 1.2rem;
+            color: var(--text-primary);
+        }
+
+        .card h3 { font-size: 1.05rem; font-weight: 600; margin-bottom: 0.5rem; letter-spacing: -0.01em; }
+        .card p { font-size: 0.88rem; color: var(--text-secondary); line-height: 1.55; }
+
+        /* === Keyboard Shortcuts === */
+        .shortcuts-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem; margin-top: 3rem; text-align: left;
+        }
+
+        .shortcut-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 16px; background: var(--surface-low);
+            border: 1px solid var(--border); border-radius: 10px;
+            transition: all 0.2s;
+        }
+
+        .shortcut-item:hover { border-color: var(--border-hover); background: var(--surface-mid); }
+
+        .shortcut-keys {
+            display: flex; gap: 4px; flex-shrink: 0;
+        }
+
+        .key {
+            padding: 3px 8px; background: var(--surface-high);
+            border: 1px solid var(--border); border-radius: 6px;
+            font-family: var(--font-mono); font-size: 11px;
+            color: var(--text-primary); font-weight: 500;
+        }
+
+        .shortcut-desc { font-size: 0.85rem; color: var(--text-secondary); }
+
+        /* === Changelog === */
+        .changelog-section { margin-top: 6rem; text-align: left; }
+
+        .changelog-card {
+            background: var(--surface-low); border: 1px solid var(--border);
+            border-radius: 16px; padding: 2rem; margin-top: 2rem;
+        }
+
+        .changelog-version {
+            display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;
+        }
+
+        .version-tag {
+            font-family: var(--font-mono); font-size: 0.85rem; font-weight: 600;
+            padding: 0.3rem 0.8rem; background: var(--surface-high);
+            border: 1px solid var(--border); border-radius: 8px;
+        }
+
+        .version-date { font-size: 0.85rem; color: var(--text-secondary); }
+
+        .changelog-list { list-style: none; display: flex; flex-direction: column; gap: 0.75rem; }
+
+        .changelog-list li {
+            font-size: 0.9rem; color: var(--text-secondary);
+            padding-left: 1.5rem; position: relative; line-height: 1.5;
+        }
+
+        .changelog-list li::before {
+            content: ''; position: absolute; left: 0; top: 0.5rem;
+            width: 6px; height: 6px; background: var(--text-secondary); border-radius: 50%;
+        }
+
+        /* === Stats === */
+        .stats-section { margin-top: 6rem; }
+
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem; margin-top: 3rem;
+        }
+
+        .stat-card {
+            text-align: center; padding: 2rem 1rem;
+            background: var(--surface-low); border: 1px solid var(--border);
+            border-radius: 16px; transition: all 0.3s;
+        }
+
+        .stat-card:hover { border-color: var(--border-hover); transform: translateY(-2px); }
+
+        .stat-number {
+            font-size: 2.5rem; font-weight: 800;
+            background: linear-gradient(135deg, #fff, #64748b);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label { font-size: 0.85rem; color: var(--text-secondary); }
+
+        /* === Footer === */
+        footer {
+            width: 100%; max-width: 1200px; margin: 0 auto;
+            padding: 2rem; display: flex; justify-content: space-between;
+            align-items: center; border-top: 1px solid var(--border);
+            font-size: 0.85rem; color: var(--text-secondary);
+            position: relative; z-index: 10; margin-top: 6rem;
+        }
+
+        footer a { color: var(--text-primary); text-decoration: none; font-weight: 500; }
+        footer a:hover { text-decoration: underline; }
+
+        @media (max-width: 768px) {
+            header { padding: 1.5rem; }
+            main { padding-top: 1.5rem; }
+            .grid-features { grid-template-columns: 1fr; }
+            .shortcuts-grid { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            footer { flex-direction: column; gap: 1rem; text-align: center; }
+            .mockup-toolbar { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-grid"></div>
+    <div class="glow-top"></div>
+    <div class="glow-secondary"></div>
+
+    <header>
+        <a href="#" class="brand-logo">
+            <div class="logo-icon">
+                <img src="./assets/akas-logo.png" alt="AKAS Browser Logo" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+                <span class="fallback">A</span>
+            </div>
+            <div class="brand-name">AKAS <span class="version-badge">v1.2.0</span></div>
+        </a>
+        <a href="https://urasakas.com.tr" class="domain-link" target="_blank">urasakas.com.tr ↗</a>
+    </header>
+
+    <main>
+        <div class="pill-badge">
+            <span class="pill-dot"></span>
+            <span>Masaüstü Sürümü Yayında</span>
+        </div>
+        
+        <h1>Gürültüden uzak.<br>Saf web deneyimi.</h1>
+        
+        <p class="hero-desc">
+            Agresif renklerden, gereksiz araç çubuklarından ve izleyicilerden arındırılmış; gözü yormayan monokrom mimarisiyle geliştirilmiş minimalist web tarayıcısı.
+        </p>
+
+        <div class="cta-wrapper">
+            <a href="https://github.com/USERNAME/akas-browser/releases/latest/download/AKAS%20Browser%20Setup%201.2.0.exe" class="btn-download" id="download-btn">
+                <svg viewBox="0 0 24 24"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.401H10.949M0 12.6l9.75 0.149v9.451L0 20.701M10.949 12.801L24 12.9v11.1L10.949 22"/></svg>
+                Windows İçin İndir
+            </a>
+            <div class="system-meta">
+                <span></span> v1.2.0 Stable
+                <span></span> Windows 10/11 (64-bit)
+                <span></span> ~85 MB
+            </div>
+            <p class="download-alt">veya <a href="./downloads/AKAS Browser Setup 1.2.0.exe" download>doğrudan indir</a></p>
+        </div>
+
+        <!-- Browser Mockup -->
+        <div class="browser-mockup">
+            <div class="mockup-toolbar">
+                <div class="mockup-dots">
+                    <div class="mockup-dot"></div>
+                    <div class="mockup-dot"></div>
+                    <div class="mockup-dot"></div>
+                </div>
+                <div class="mockup-url">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                    duckduckgo.com
+                </div>
+                <div class="mockup-tabs">
+                    <div class="mockup-tab">Yeni Sekme</div>
+                    <div class="mockup-tab">GitHub</div>
+                </div>
+            </div>
+            <div class="mockup-content">
+                <div class="mockup-search">
+                    <div class="mockup-logo">
+                        <img src="./assets/akas-logo.png" alt="AKAS Browser" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+                        <span class="fallback">A</span>
+                    </div>
+                    <div class="mockup-search-bar">Web adresi veya arama...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features -->
+        <div class="section-header animate-on-scroll">
+            <h2>Özellikler</h2>
+            <p>Basit ama güçlü</p>
+        </div>
+
+        <div class="grid-features">
+            <div class="card animate-on-scroll">
+                <div class="card-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg>
+                </div>
+                <h3>Koyu Monokrom Arayüz</h3>
+                <p>Kırmızı, mavi veya yeşil gibi dikkat dağıtan parlak tonlar barındırmaz. Sadece içeriğe odaklanmanızı sağlar.</p>
+            </div>
+
+            <div class="card animate-on-scroll">
+                <div class="card-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                </div>
+                <h3>Chromium Altyapısı</h3>
+                <p>Electron ve Chromium motoruyla güçlendirildi. Tüm modern web standartlarını eksiksiz ve hızlıca çalıştırır.</p>
+            </div>
+
+            <div class="card animate-on-scroll">
+                <div class="card-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <h3>Hafif ve Yalın</h3>
+                <p>Gereksiz eklentiler ve arka plan süreçleri bulunmaz. Sistem kaynaklarını minimum düzeyde tüketir.</p>
+            </div>
+
+            <div class="card animate-on-scroll">
+                <div class="card-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+                </div>
+                <h3>Tor Entegrasyonu</h3>
+                <p>Yerel Tor bağlantısı algılarsa otomatik SOCKS5 proxy üzerinden gezinme. Tek tıkla yeni Tor devresi talebi.</p>
+            </div>
+
+            <div class="card animate-on-scroll">
+                <div class="card-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </div>
+                <h3>AKAS Shield</h3>
+                <p>Reklam ve izleyici engelleme. Tracker ve reklam domainleri için yerleşik blocklist ile güvenli gezinme.</p>
+            </div>
+
+            <div class="card animate-on-scroll">
+                <div class="card-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                </div>
+                <h3>Gizlilik Odaklı</h3>
+                <p>User-Agent maskelenmesi, X-Frame-Options temizliği ve minimum veri sızıntısı ile gizliliğinizi korur.</p>
+            </div>
+        </div>
+
+        <!-- Keyboard Shortcuts -->
+        <div class="section-header animate-on-scroll">
+            <h2>Klavye Kısayolları</h2>
+            <p>Hızlı erişim için kısayollar</p>
+        </div>
+
+        <div class="shortcuts-grid">
+            <div class="shortcut-item animate-on-scroll">
+                <div class="shortcut-keys"><span class="key">Ctrl</span><span class="key">T</span></div>
+                <span class="shortcut-desc">Yeni Sekme</span>
+            </div>
+            <div class="shortcut-item animate-on-scroll">
+                <div class="shortcut-keys"><span class="key">Ctrl</span><span class="key">W</span></div>
+                <span class="shortcut-desc">Sekmeyi Kapat</span>
+            </div>
+            <div class="shortcut-item animate-on-scroll">
+                <div class="shortcut-keys"><span class="key">Ctrl</span><span class="key">L</span></div>
+                <span class="shortcut-desc">URL Barına Odaklan</span>
+            </div>
+            <div class="shortcut-item animate-on-scroll">
+                <div class="shortcut-keys"><span class="key">Ctrl</span><span class="key">R</span></div>
+                <span class="shortcut-desc">Sayfayı Yenile</span>
+            </div>
+            <div class="shortcut-item animate-on-scroll">
+                <div class="shortcut-keys"><span class="key">Ctrl</span><span class="key">F</span></div>
+                <span class="shortcut-desc">Sayfada Ara</span>
+            </div>
+            <div class="shortcut-item animate-on-scroll">
+                <div class="shortcut-keys"><span class="key">Ctrl</span><span class="key">B</span></div>
+                <span class="shortcut-desc">Yer İmleri</span>
+            </div>
+            <div class="shortcut-item animate-on-scroll">
+                <div class="shortcut-keys"><span class="key">Ctrl</span><span class="key">H</span></div>
+                <span class="shortcut-desc">Geçmiş</span>
+            </div>
+            <div class="shortcut-item animate-on-scroll">
+                <div class="shortcut-keys"><span class="key">F12</span></div>
+                <span class="shortcut-desc">Geliştirici Araçları</span>
+            </div>
+            <div class="shortcut-item animate-on-scroll">
+                <div class="shortcut-keys"><span class="key">Ctrl</span><span class="key">+</span></div>
+                <span class="shortcut-desc">Yakınlaştır</span>
+            </div>
+            <div class="shortcut-item animate-on-scroll">
+                <div class="shortcut-keys"><span class="key">Ctrl</span><span class="key">-</span></div>
+                <span class="shortcut-desc">Uzaklaştır</span>
+            </div>
+            <div class="shortcut-item animate-on-scroll">
+                <div class="shortcut-keys"><span class="key">Alt</span><span class="key">←</span></div>
+                <span class="shortcut-desc">Geri Git</span>
+            </div>
+            <div class="shortcut-item animate-on-scroll">
+                <div class="shortcut-keys"><span class="key">Alt</span><span class="key">→</span></div>
+                <span class="shortcut-desc">İleri Git</span>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-section animate-on-scroll">
+            <div class="section-header">
+                <h2>Rakamlarla AKAS</h2>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">40+</div>
+                    <div class="stat-label">Engellenen Tracker</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">0</div>
+                    <div class="stat-label">Reklam Gösterimi</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">v1.2</div>
+                    <div class="stat-label">Güncel Sürüm</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">100%</div>
+                    <div class="stat-label">Ücretsiz</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Changelog -->
+        <div class="changelog-section animate-on-scroll">
+            <div class="section-header">
+                <h2>Sürüm Notları</h2>
+            </div>
+            <div class="changelog-card">
+                <div class="changelog-version">
+                    <span class="version-tag">v1.2.0</span>
+                    <span class="version-date">Güncel Sürüm</span>
+                </div>
+                <ul class="changelog-list">
+                    <li>Çoklu sekme desteği (Ctrl+T ile yeni sekme)</li>
+                    <li>Yeni sekme sayfası - hızlı erişim ve arama</li>
+                    <li>Yer imleri ve geçmiş sistemi</li>
+                    <li>Sayfada arama (Ctrl+F)</li>
+                    <li>Zoom kontrolü (Ctrl+/-)</li>
+                    <li>Ekran görüntüsü alma</li>
+                    <li>Tor SOCKS5 proxy entegrasyonu</li>
+                    <li>AKAS Shield ile tracker ve reklam engelleme</li>
+                    <li>Electron 28 altyapısına yükseltme</li>
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div>© 2026 AKAS Browser. Tüm hakları saklıdır.</div>
+        <div>Mimar: <a href="https://urasakas.com.tr" target="_blank">Uras Akas</a></div>
+    </footer>
+
+    <script>
+        // Scroll Animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry, index) => {
+                if (entry.isIntersecting) {
+                    setTimeout(() => {
+                        entry.target.classList.add('visible');
+                    }, index * 80);
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+        document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
+
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+    </script>
+</body>
+</html>

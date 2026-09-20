@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yeni Sekme</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0a0e1a;
+            color: #f1f5f9;
+            font-family: 'Segoe UI', -apple-system, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+        .logo-container {
+            margin-bottom: 1.5rem;
+            animation: fadeIn 0.5s ease;
+        }
+        .logo-container img {
+            width: 140px;
+            height: 140px;
+            object-fit: contain;
+            filter: drop-shadow(0 0 30px rgba(56, 189, 248, 0.15));
+        }
+        .subtitle {
+            color: #64748b;
+            margin-bottom: 2.5rem;
+            font-size: 0.95rem;
+            letter-spacing: 0.02em;
+            animation: fadeIn 0.5s ease 0.1s both;
+        }
+        .search-box {
+            width: 520px;
+            max-width: 90vw;
+            position: relative;
+            margin-bottom: 2.5rem;
+            animation: fadeIn 0.5s ease 0.2s both;
+        }
+        .search-box input {
+            width: 100%;
+            padding: 14px 20px;
+            border-radius: 12px;
+            border: 1px solid #1e293b;
+            background: #111827;
+            color: #f1f5f9;
+            font-size: 15px;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        .search-box input:focus {
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1);
+        }
+        .search-box input::placeholder {
+            color: #475569;
+        }
+        .quick-links {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            max-width: 520px;
+            width: 90vw;
+            animation: fadeIn 0.5s ease 0.3s both;
+        }
+        .quick-link {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 16px 12px;
+            border-radius: 12px;
+            background: #111827;
+            border: 1px solid #1e293b;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            color: #f1f5f9;
+        }
+        .quick-link:hover {
+            background: #1e293b;
+            border-color: #334155;
+            transform: translateY(-2px);
+        }
+        .ql-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            background: #1e293b;
+            display: grid;
+            place-items: center;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #38bdf8;
+        }
+        .ql-label {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            text-align: center;
+        }
+        .clock {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            font-family: 'SF Mono', 'Cascadia Code', monospace;
+            font-size: 0.85rem;
+            color: #475569;
+        }
+        .footer-text {
+            position: fixed;
+            bottom: 20px;
+            font-size: 0.75rem;
+            color: #334155;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="clock" id="ntp-clock"></div>
+    
+    <div class="logo-container">
+        <img src="../../assets/akas-logo.png" alt="AKAS Browser" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <div style="display:none;font-size:3rem;font-weight:800;background:linear-gradient(135deg,#fff,#38bdf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent">AKAS</div>
+    </div>
+    
+    <div class="subtitle">Saf, hızlı ve bağımsız web</div>
+    
+    <div class="search-box">
+        <input type="text" id="ntp-search" placeholder="Google'da ara veya web adresi yazın..." autofocus>
+    </div>
+    
+    <div class="quick-links">
+        <a class="quick-link" href="https://google.com">
+            <div class="ql-icon">G</div>
+            <span class="ql-label">Google</span>
+        </a>
+        <a class="quick-link" href="https://youtube.com">
+            <div class="ql-icon">Y</div>
+            <span class="ql-label">YouTube</span>
+        </a>
+        <a class="quick-link" href="https://github.com">
+            <div class="ql-icon">GH</div>
+            <span class="ql-label">GitHub</span>
+        </a>
+        <a class="quick-link" href="https://twitter.com">
+            <div class="ql-icon">X</div>
+            <span class="ql-label">X / Twitter</span>
+        </a>
+        <a class="quick-link" href="https://reddit.com">
+            <div class="ql-icon">R</div>
+            <span class="ql-label">Reddit</span>
+        </a>
+        <a class="quick-link" href="https://wikipedia.org">
+            <div class="ql-icon">W</div>
+            <span class="ql-label">Wikipedia</span>
+        </a>
+        <a class="quick-link" href="https://discord.com">
+            <div class="ql-icon">D</div>
+            <span class="ql-label">Discord</span>
+        </a>
+        <a class="quick-link" href="https://urasakas.com.tr">
+            <div class="ql-icon">UA</div>
+            <span class="ql-label">Uras Akas</span>
+        </a>
+    </div>
+    
+    <div class="footer-text">AKAS Browser v1.2.0</div>
+
+    <script>
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('ntp-clock').textContent = now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        document.getElementById('ntp-search').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const val = this.value.trim();
+                if (val) {
+                    let url = val.includes('.') && !val.includes(' ') 
+                        ? (val.startsWith('http') ? val : 'https://' + val) 
+                        : 'https://www.google.com/search?q=' + encodeURIComponent(val);
+                    window.location.href = url;
+                }
+            }
+        });
+
+        document.querySelectorAll('.quick-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                window.location.href = this.href;
+            });
+        });
+    </script>
+</body>
+</html>
