@@ -42,7 +42,7 @@ function updateUrlDisplay(url) {
         urlDomain.textContent = '';
         urlRest.textContent = '';
         urlInput.value = '';
-        urlInput.placeholder = 'Web adresi veya arama...';
+        urlInput.placeholder = 'AKAS Browser\'da arama yapın...';
         lockIcon.style.display = 'none';
         return;
     }
